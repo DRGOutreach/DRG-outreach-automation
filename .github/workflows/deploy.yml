@@ -1,32 +1,43 @@
 name: Deploy Outreach Agent
 
 on:
+  schedule:
+    # UTC time. Example below runs at 1:00 PM UTC every weekday (Mon–Fri).
+    # 1:00 PM UTC = 9:00 AM Eastern (during EDT).
+    - cron: '0 13 * * 1-5'
+  workflow_dispatch: {}  # allows manual run from Actions tab
   push:
-    branches: [ "main" ]
+    branches: [ main ]   # still runs if you update code
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Configure Google Credentials
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
-      run: |
-        echo "${{ secrets.GCP_Credentials }}" > $GOOGLE_APPLICATION_CREDENTIALS
+      # Use your GCP service-account JSON stored in GitHub Secrets
+      - name: Configure Google Credentials
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_Credentials }}
 
-    - name: Run agent
-      run: python agent.py
+      # Run your agent script
+      - name: Run outreach agent
+        env:
+          # Set these to your sheet details. If you prefer, put them in GitHub Secrets and reference like ${{ secrets.SHEET_ID }}
+          SHEET_ID: "<PASTE_YOUR_SHEET_ID_HERE>"
+          SHEET_TAB: "Outreach"
+        run: python agent.py
+
