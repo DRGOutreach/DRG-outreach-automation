@@ -1,8 +1,10 @@
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
-def main():
-    print('Outreach Agent is ready!')
+scope = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
+client = gspread.authorize(creds)
 
-if __name__ == '__main__':
-    main()
+sheet = client.open_by_key(1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
+).sheet1
+
